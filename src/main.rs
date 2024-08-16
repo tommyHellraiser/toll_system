@@ -3,6 +3,10 @@ use the_logger::{log_error, log_info};
 mod config;
 mod api;
 mod modules;
+mod utilities;
+
+const SERVICE_NAME: &str = env!("CARGO_PKG_NAME");
+const SERVICE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() {
