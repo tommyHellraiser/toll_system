@@ -1,0 +1,11 @@
+[package]
+name = "toll_system"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+the_logger = "0.5.3"
+error_mapper = "0.3.9"
+serde_json = "1.0.117"
+serde = "1.0.202"
+tokio = { version = "1.37.0", features = [] }
