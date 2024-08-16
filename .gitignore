@@ -7,3 +7,4 @@ Cargo.lock
 .gitignore.un~
 .gitignore~
 ..gitignore.un~
+logs/
