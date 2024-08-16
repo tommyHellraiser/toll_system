@@ -16,7 +16,14 @@ pub struct Environment {
 #[derive(Deserialize)]
 struct EnvironmentInner {
     api_ip: String,
-    api_port: u16
+    api_port: u16,
+    database: DatabaseConfig
+}
+
+#[derive(Deserialize)]
+struct DatabaseConfig {
+    address: String,
+    reset_schema: bool
 }
 
 impl Environment {
