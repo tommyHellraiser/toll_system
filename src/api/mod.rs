@@ -6,6 +6,7 @@ use error_mapper::{create_new_error, TheResult};
 use the_logger::{log_info, TheLogger};
 use tokio::sync::mpsc::{Receiver, Sender};
 use crate::config::environment::Environment;
+use crate::DATETIME_FORMAT;
 
 struct ApiData {
     api_stopper: Sender<bool>
@@ -19,7 +20,11 @@ pub(super) async fn start_api() -> TheResult<()> {
 
     let (stop_sender, stop_receiver) = tokio::sync::mpsc::channel::<bool>(5);
 
-    log_info!(TheLogger::instance(), "Starting Api at: {}", chrono::Local::now());
+    log_info!(
+        TheLogger::instance(),
+        "Starting Api at: {}",
+        chrono::Local::now().format(DATETIME_FORMAT)
+    );
     
     let api_server = HttpServer::new(move || {
         App::new()
