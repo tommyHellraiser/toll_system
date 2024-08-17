@@ -13,8 +13,9 @@ struct ApiData {
 
 pub(super) async fn start_api() -> TheResult<()> {
 
-    let api_ip = Environment::get_api_ip().await;
-    let api_port = Environment::get_api_port().await;
+    let api_config = Environment::get_api_config().await;
+    let api_ip = api_config.get_ip_addr();
+    let api_port = api_config.get_port();
 
     let (stop_sender, stop_receiver) = tokio::sync::mpsc::channel::<bool>(5);
 
@@ -38,14 +39,9 @@ pub(super) async fn start_api() -> TheResult<()> {
 async fn api_killer(server_handler: ServerHandle, mut stop_receiver: Receiver<bool>) {
     
     'stop_loop: loop {
-        match stop_receiver.recv().await {
-            Some(stop_method) => {
-                server_handler.stop(stop_method).await;
-                break 'stop_loop;
-            },
-            None => {
-                println!("Received a none?");
-            }
+        if let Some(stop_method) = stop_receiver.recv().await {
+            server_handler.stop(stop_method).await;
+            break 'stop_loop;
         }    
     }
 }

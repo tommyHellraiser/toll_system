@@ -15,13 +15,18 @@ pub struct Environment {
 
 #[derive(Deserialize)]
 struct EnvironmentInner {
-    api_ip: String,
-    api_port: u16,
+    api_config: ApiConfig,
     database: DatabaseConfig
 }
 
-#[derive(Deserialize)]
-struct DatabaseConfig {
+#[derive(Deserialize, Clone)]
+pub struct ApiConfig {
+    ip_addr: String,
+    port: u16
+}
+
+#[derive(Deserialize, Clone)]
+pub struct DatabaseConfig {
     address: String,
     reset_schema: bool
 }
@@ -52,11 +57,31 @@ impl Environment {
     }
     
     //  Getters for all Environment elements
-    pub async fn get_api_ip() -> String {
-        Self::instance().inner.read().await.api_ip.clone()
+    pub async fn get_api_config() -> ApiConfig {
+        Self::instance().inner.read().await.api_config.clone()
     }
     
-    pub async fn get_api_port() -> u16 {
-        Self::instance().inner.read().await.api_port
+    pub async fn get_database_config() -> DatabaseConfig {
+        Self::instance().inner.read().await.database.clone()
+    }
+}
+
+impl ApiConfig {
+    pub fn get_ip_addr(&self) -> String {
+        self.ip_addr.clone()
+    }
+    
+    pub fn get_port(&self) -> u16 {
+        self.port
+    }
+}
+
+impl DatabaseConfig {
+    pub fn get_address(&self) -> String {
+        self.address.clone()
+    }
+    
+    pub fn get_reset_schema(&self) -> bool {
+        self.reset_schema
     }
 }
