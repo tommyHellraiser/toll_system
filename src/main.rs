@@ -25,5 +25,5 @@ async fn main() {
         Err(e) => {
             log_error!(logger, "Failed to start Api: {}", e.to_string())
         }
-    }   
+    }
 }

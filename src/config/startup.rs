@@ -38,6 +38,6 @@ pub async fn startup_configurations() ->TheResult<()> {
     //  Run the schema reset script
     let mut conn = db::get_connection().await?;
     conn.query_drop(schema_reset_script).await.map_err(|e| create_new_error!(e))?;
-    
+
     Ok(())
 }
