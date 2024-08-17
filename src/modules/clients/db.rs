@@ -12,8 +12,8 @@ struct DbClients {
     document: DocumentType,
     email: String,
     date_of_birth: NaiveDate,
-    phone_number: PhoneNumberType,
-    address: String,
+    phone_number: Option<PhoneNumberType>,
+    address: Option<String>,
     is_active: bool
 }
 
@@ -30,8 +30,8 @@ impl FromRow for DbClients {
             document: get_value_from_row!(row, "document", table, DocumentType),
             email: get_value_from_row!(row, "email", table, String),
             date_of_birth: get_value_from_row!(row, "date_of_birth", table, NaiveDate),
-            phone_number: get_value_from_row!(row, "phone_number", table, PhoneNumberType),
-            address: get_value_from_row!(row, "address", table, String),
+            phone_number: get_value_from_row!(row, "phone_number", table, Option<PhoneNumberType>),
+            address: get_value_from_row!(row, "address", table, Option<String>),
             is_active: get_value_from_row!(row, "is_active", table, bool)
         }
     }

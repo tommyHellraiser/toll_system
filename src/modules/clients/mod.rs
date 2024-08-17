@@ -10,7 +10,7 @@ struct Clients {
     document: DocumentType,
     email: String,
     date_of_birth: NaiveDate,
-    phone_number: PhoneNumberType,
-    address: String,
+    phone_number: Option<PhoneNumberType>,
+    address: Option<String>,
     is_active: bool
 }

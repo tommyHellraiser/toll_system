@@ -39,7 +39,7 @@ impl FromRow for DbTransactionLogs {
         }
     }
 
-    fn from_row_opt(row: Row) -> Result<Self, FromRowError>
+    fn from_row_opt(_row: Row) -> Result<Self, FromRowError>
     where
         Self: Sized,
     {

@@ -7,5 +7,5 @@ struct Blacklist {
     id: BlacklistIdType,
     clients_id: ClientsIdType,
     reason: String,
-    restriction_expiry: NaiveDateTime
+    restriction_expiry: Option<NaiveDateTime>
 }

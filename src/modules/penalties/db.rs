@@ -8,14 +8,14 @@ use crate::utilities::datatypes::{ClientsIdType, LicensePlateType, PenaltiesIdTy
 
 struct DbPenalties {
     id: PenaltiesIdType,
-    violation_logs_id: ViolationLogsIdType,
-    clients_id: ClientsIdType,
-    registered_vehicles_id: RegisteredVehiclesIdType,
+    violation_logs_id: Option<ViolationLogsIdType>,
+    clients_id: Option<ClientsIdType>,
+    registered_vehicles_id: Option<RegisteredVehiclesIdType>,
     license_plate: LicensePlateType,
     penalty_amount: Decimal,
     reason: String,
     penalty_paid: bool,
-    paid_at: NaiveDateTime
+    paid_at: Option<NaiveDateTime>
 }
 
 impl FromRow for DbPenalties {
@@ -26,14 +26,14 @@ impl FromRow for DbPenalties {
         let table = "penalties";
         Self {
             id: get_value_from_row!(row, "ID", table, PenaltiesIdType),
-            violation_logs_id: get_value_from_row!(row, "violation_logs_ID", table, ViolationLogsIdType),
-            clients_id: get_value_from_row!(row, "clients_ID", table, ClientsIdType),
-            registered_vehicles_id: get_value_from_row!(row, "registered_vehicles_ID", table, RegisteredVehiclesIdType),
+            violation_logs_id: get_value_from_row!(row, "violation_logs_ID", table, Option<ViolationLogsIdType>),
+            clients_id: get_value_from_row!(row, "clients_ID", table, Option<ClientsIdType>),
+            registered_vehicles_id: get_value_from_row!(row, "registered_vehicles_ID", table, Option<RegisteredVehiclesIdType>),
             license_plate: get_value_from_row!(row, "license_plate", table, LicensePlateType),
             penalty_amount: get_value_from_row!(row, "penalty_amount", table, Decimal),
             reason: get_value_from_row!(row, "reason", table, String),
             penalty_paid: get_value_from_row!(row, "penalty_paid", table, bool),
-            paid_at: get_value_from_row!(row, "paid_at", table, NaiveDateTime)
+            paid_at: get_value_from_row!(row, "paid_at", table, Option<NaiveDateTime>)
         }
     }
 
