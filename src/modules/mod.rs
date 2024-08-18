@@ -5,3 +5,8 @@ mod discounts;
 mod penalties;
 mod registered_vehicles;
 mod transaction_logs;
+mod transit_logs;
+mod transit_fee_logs;
+mod transit_rates;
+mod vehicle_types;
+mod violation_logs;

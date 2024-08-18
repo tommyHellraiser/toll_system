@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS booths (
 
 CREATE TABLE IF NOT EXISTS vehicle_types (
     ID int PRIMARY KEY AUTO_INCREMENT,
-    `type` varchar(20) NOT NULL,
+    vehicle_type enum('Bike', 'Car', 'Pickup', 'Van', 'Truck', 'Trailer', 'Service', 'Bus') NOT NULL,
     created_at datetime DEFAULT NOW(),
     updated_at datetime NULL DEFAULT NULL ON UPDATE NOW()
 );
@@ -173,6 +173,19 @@ CREATE TABLE IF NOT EXISTS penalties (
     INDEX penalties_license_plate (license_plate)
 );
 
+CREATE TABLE IF NOT EXISTS transit_fee_logs (
+    ID int PRIMARY KEY AUTO_INCREMENT,
+    original_amount decimal(12,2) NOT NULL DEFAULT 0,
+    transit_rates_ID int,
+    discounts_ID int,
+    final_amount decimal(12,2) DEFAULT 0,
+    payment_method enum('Prepaid', 'Cash', 'Credit', 'Debit', 'Other'),
+    created_at datetime NOT NULL DEFAULT NOW(),
+    updated_at datetime NULL DEFAULT NULL ON UPDATE NOW(),
+    CONSTRAINT transit_logs_transit_rates_ID FOREIGN KEY (transit_rates_ID) REFERENCES transit_rates (ID) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT transit_logs_discounts_ID FOREIGN KEY (discounts_ID) REFERENCES  discounts (ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS transit_logs (
     ID int PRIMARY KEY AUTO_INCREMENT,
     booths_ID int NOT NULL,
@@ -180,18 +193,14 @@ CREATE TABLE IF NOT EXISTS transit_logs (
     registered_vehicles_ID int,
     license_plate varchar(10),
     transit_time datetime NOT NULL DEFAULT NOW(),
-    transit_rates_ID int,
-    discounts_ID int,
-    final_amount decimal(12,2) DEFAULT 0,
-    payment_method enum('Prepaid', 'Cash', 'Credit', 'Debit', 'Other'),
+    transit_fee_logs_ID int NOT NULL,
     violation_logs_ID int NULL DEFAULT NULL,
     created_at datetime NOT NULL DEFAULT NOW(),
     updated_at datetime NULL DEFAULT NULL ON UPDATE NOW(),
     CONSTRAINT transit_logs_booths_ID FOREIGN KEY (booths_ID) REFERENCES booths (ID) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT transit_logs_clients_ID FOREIGN KEY (clients_ID) REFERENCES clients (ID) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT transit_logs_registered_vehicles_ID FOREIGN KEY (registered_vehicles_ID) REFERENCES registered_vehicles (ID) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT transit_logs_transit_rates_ID FOREIGN KEY (transit_rates_ID) REFERENCES transit_rates (ID) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT transit_logs_discounts_ID FOREIGN KEY (discounts_ID) REFERENCES  discounts (ID) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT transit_logs_transit_fee_logs_ID FOREIGN KEY  (transit_fee_logs_ID) REFERENCES transit_fee_logs (ID) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT transit_logs_violation_logs_ID FOREIGN KEY (violation_logs_ID) REFERENCES violation_logs (ID) ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX transit_logs_transit_time (transit_time),
     INDEX transit_logs_license_plate (license_plate),
@@ -200,13 +209,11 @@ CREATE TABLE IF NOT EXISTS transit_logs (
 );
 
 
-
 ###############
 # Data reset
 ###############
-INSERT INTO vehicle_types (`type`)
-VALUES ('All'),
-('Bike'),
+INSERT INTO vehicle_types (vehicle_type)
+VALUES ('Bike'),
 ('Car'),
 ('Pickup'),
 ('Van'),
@@ -216,8 +223,7 @@ VALUES ('All'),
 ('Bus');
 
 INSERT INTO booths (city, route, max_lanes)
-VALUES ( 'Global', 0, 0),
-('Buenos Aires', '7',4);
+VALUES ('Buenos Aires', '7',4);
 
 INSERT INTO discounts (vehicle_types_id, valid_from, valid_until, discount_percentage, booths_id)
-VALUES (1, NOW(), NULL, 0.15, 1);
+VALUES (NULL, NOW(), NULL, 0.15, NULL);
