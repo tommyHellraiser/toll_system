@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS registered_vehicles (
     brand varchar(20) NOT NULL DEFAULT '',
     model varchar(20) NOT NULL DEFAULT '',
     year varchar(20) NOT NULL DEFAULT '',
+    active_until datetime NULL DEFAULT NULL,
     created_at datetime NOT NULL DEFAULT NOW(),
     updated_at datetime NULL DEFAULT NULL ON UPDATE NOW(),
     CONSTRAINT registered_vehicles_clients_ID FOREIGN KEY (clients_ID) REFERENCES clients (ID) ON UPDATE CASCADE ON DELETE CASCADE,

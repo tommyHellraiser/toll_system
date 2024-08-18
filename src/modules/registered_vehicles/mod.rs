@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use crate::utilities::datatypes::{ClientsIdType, LicensePlateType, RegisteredVehiclesIdType, VehicleTypesIdType};
 
 mod db;
@@ -10,5 +11,6 @@ struct RegisteredVehicles {
     color: String,
     brand: String,
     model: String,
-    year: u16
+    year: u16,
+    active_until: Option<NaiveDateTime>
 }

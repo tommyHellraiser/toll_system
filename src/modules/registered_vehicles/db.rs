@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use mysql_async::prelude::FromRow;
 use mysql_async::{FromRowError, Row};
 use crate::get_value_from_row;
@@ -12,7 +13,8 @@ struct DbRegisteredVehicles {
     color: String,
     brand: String,
     model: String,
-    year: u16
+    year: u16,
+    active_until: Option<NaiveDateTime>
 }
 
 impl FromRow for DbRegisteredVehicles {
@@ -29,7 +31,8 @@ impl FromRow for DbRegisteredVehicles {
             color: get_value_from_row!(row, "color", table, String),
             brand: get_value_from_row!(row, "brand", table, String),
             model: get_value_from_row!(row, "model", table, String),
-            year: get_value_from_row!(row, "year", table, u16)
+            year: get_value_from_row!(row, "year", table, u16),
+            active_until: get_value_from_row!(row, "active_until", table, Option<NaiveDateTime>)
         }
     }
 
@@ -51,7 +54,8 @@ impl From<DbRegisteredVehicles> for RegisteredVehicles {
             color: value.color,
             brand: value.brand,
             model: value.model,
-            year: value.year
+            year: value.year,
+            active_until: value.active_until
         }
     }
 }
