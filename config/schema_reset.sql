@@ -74,7 +74,8 @@ CREATE TABLE IF NOT EXISTS transaction_logs (
 
 CREATE TABLE IF NOT EXISTS blacklist (
     ID int PRIMARY KEY AUTO_INCREMENT,
-    clients_ID int NOT NULL,
+    clients_ID int NULL DEFAULT NULL,
+    license_plate varchar(10) NOT NULL,
     reason varchar(128) NOT NULL,
     restriction_expiry datetime DEFAULT NULL,
     created_at datetime NOT NULL DEFAULT NOW(),
@@ -177,6 +178,7 @@ CREATE TABLE IF NOT EXISTS penalties (
 CREATE TABLE IF NOT EXISTS transit_fee_logs (
     ID int PRIMARY KEY AUTO_INCREMENT,
     original_amount decimal(12,2) NOT NULL DEFAULT 0,
+    has_client_discount boolean NOT NULL DEFAULT false,
     transit_rates_ID int,
     discounts_ID int,
     final_amount decimal(12,2) DEFAULT 0,

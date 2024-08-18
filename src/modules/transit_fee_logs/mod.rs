@@ -7,6 +7,7 @@ mod db;
 struct TransitFeeLogs {
     id: TransitFeeLogsIdType,
     original_amount: Decimal,
+    has_client_discount: bool,
     transit_rates_id: TransitRatesIdType,
     discounts_id: DiscountsIdType,
     final_amount: Decimal,
