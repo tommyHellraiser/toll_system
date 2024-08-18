@@ -5,6 +5,7 @@ mod db;
 
 #[cfg(test)]
 mod tests;
+pub mod services;
 
 struct VehicleTypes {
     id: VehicleTypesIdType,

@@ -3,6 +3,7 @@ use rust_decimal::Decimal;
 use crate::utilities::datatypes::{BoothsIdType, TransitRatesIdType, VehicleTypesIdType};
 
 mod db;
+pub mod services;
 
 struct TransitRates {
     id: TransitRatesIdType,

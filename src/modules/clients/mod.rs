@@ -2,6 +2,7 @@ use chrono::NaiveDate;
 use crate::utilities::datatypes::{ClientsIdType, DocumentType, PhoneNumberType};
 
 mod db;
+pub mod services;
 
 struct Clients {
     id: ClientsIdType,

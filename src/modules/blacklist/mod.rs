@@ -2,6 +2,7 @@ use chrono::NaiveDateTime;
 use crate::utilities::datatypes::{BlacklistIdType, ClientsIdType, LicensePlateType};
 
 mod db;
+pub mod services;
 
 struct Blacklist {
     id: BlacklistIdType,

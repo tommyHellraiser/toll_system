@@ -2,6 +2,7 @@ use chrono::NaiveDateTime;
 use crate::utilities::datatypes::{BoothsIdType, ClientsIdType, LicensePlateType, RegisteredVehiclesIdType, TransitFeeLogsIdType, TransitLogsIdType, ViolationLogsIdType};
 
 mod db;
+pub mod services;
 
 struct TransitLogs {
     id: TransitLogsIdType,

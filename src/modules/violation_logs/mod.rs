@@ -1,6 +1,7 @@
 use crate::utilities::datatypes::{ClientsIdType, LicensePlateType, RegisteredVehiclesIdType, ViolationLogsIdType};
 
 mod db;
+pub mod services;
 
 struct ViolationLogs {
     id: ViolationLogsIdType,
