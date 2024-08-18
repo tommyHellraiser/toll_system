@@ -52,6 +52,12 @@ pub(super) async fn start_api() -> TheResult<()> {
                     web::scope("/registered_vehicles").configure(modules::registered_vehicles::services::registered_vehicles_services)
                 )
                 .service(
+                    web::scope("/transactions").configure(modules::transactions::services::transactions_services)
+                )
+                .service(
+                    web::scope("/transit").configure(modules::transit::services::transit_services)
+                )
+                .service(
                     web::scope("/transit_logs").configure(modules::transit_logs::services::transit_logs_services)
                 )
                 .service(

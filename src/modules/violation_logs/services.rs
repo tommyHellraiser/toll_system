@@ -1,11 +1,10 @@
-use actix_web::{get, patch, post, HttpResponse};
+use actix_web::{get, patch, HttpResponse};
 use actix_web::web::ServiceConfig;
 use the_logger::TheLogger;
 
 pub fn violation_logs_services(cfg: &mut ServiceConfig) {
     cfg.service(get_violation_log_by_license_plate)
         .service(get_violation_log_by_license_plate)
-        .service(post_violation_log)
         .service(patch_violation_log);
 }
 
@@ -25,13 +24,7 @@ async fn get_violation_log_by_license_plate() -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
-#[post("")]
-async fn post_violation_log() -> HttpResponse {
 
-    let logger = TheLogger::instance();
-
-    HttpResponse::Ok().finish()
-}
 
 #[patch("{violation_logs_id}")]
 async fn patch_violation_log() -> HttpResponse {

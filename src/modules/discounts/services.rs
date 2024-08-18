@@ -11,7 +11,7 @@ pub fn discount_services(cfg: &mut ServiceConfig) {
 #[get("")]
 async fn get_discounts() -> HttpResponse {
 
-    //  TODO get discounts only for current booth
+    //  TODO get discounts only active and for current booth
     let logger = TheLogger::instance();
 
     HttpResponse::Ok().finish()

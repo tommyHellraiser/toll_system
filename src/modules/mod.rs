@@ -10,3 +10,5 @@ pub(super) mod transit_fee_logs;
 pub(super) mod transit_rates;
 pub(super) mod vehicle_types;
 pub(super) mod violation_logs;
+pub(super) mod transit;
+pub(super) mod transactions;
