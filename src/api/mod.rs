@@ -69,7 +69,18 @@ pub(super) async fn start_api() -> TheResult<()> {
                 .service(
                     web::scope("/violation_logs").configure(modules::violation_logs::services::violation_logs_services)
                 )
-        )
+        ).service(
+                web::scope("/internal")
+                    .service(
+                        web::scope("/discounts").configure(modules::discounts::services::discounts_internal_services)
+                    )
+                    .service(
+                        web::scope("/penalties").configure(modules::penalties::services::penalties_internal_services)
+                    )
+                    .service(
+                        web::scope("/transit_rates").configure(modules::transit_rates::services::transit_rates_internal_services)
+                    )
+            )
     }).bind((api_ip, api_port)).map_err(|e| create_new_error!(e.to_string().as_str()))?.run();
 
     tokio::spawn(api_killer(api_server.handle(), stop_receiver));

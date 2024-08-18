@@ -5,8 +5,11 @@ use the_logger::TheLogger;
 
 pub fn transit_rates_services(cfg: &mut ServiceConfig) {
     cfg.service(get_transit_rates)
-        .service(get_transit_rate)
-        .service(post_transit_rate)
+        .service(get_transit_rate);
+}
+
+pub fn transit_rates_internal_services(cfg: &mut ServiceConfig) {
+    cfg.service(post_transit_rate)
         .service(patch_transit_rate);
 }
 

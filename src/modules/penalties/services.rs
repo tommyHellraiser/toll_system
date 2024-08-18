@@ -5,8 +5,11 @@ use the_logger::TheLogger;
 pub fn penalties_services(cfg: &mut ServiceConfig) {
     cfg.service(get_open_penalties)
         .service(get_penalty_by_client)
-        .service(post_penalty)
         .service(patch_penalty);
+}
+
+pub fn penalties_internal_services(cfg: &mut ServiceConfig) {
+    cfg.service(post_penalty);
 }
 
 #[get("")]
@@ -25,16 +28,16 @@ async fn get_penalty_by_client() -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
-#[post("")]
-async fn post_penalty() -> HttpResponse {
+#[patch("{penalties_id}")]
+async fn patch_penalty() -> HttpResponse {
 
     let logger = TheLogger::instance();
 
     HttpResponse::Ok().finish()
 }
 
-#[patch("{penalties_id}")]
-async fn patch_penalty() -> HttpResponse {
+#[post("")]
+async fn post_penalty() -> HttpResponse {
 
     let logger = TheLogger::instance();
 

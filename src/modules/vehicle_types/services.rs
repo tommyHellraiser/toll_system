@@ -3,8 +3,11 @@ use actix_web::web::ServiceConfig;
 use the_logger::TheLogger;
 
 pub fn vehicle_types_services(cfg: &mut ServiceConfig) {
-    cfg.service(get_vehicle_types)
-        .service(post_vehicle_type)
+    cfg.service(get_vehicle_types);
+}
+
+pub fn vehicle_types_internal_services(cfg: &mut ServiceConfig) {
+    cfg.service(post_vehicle_type)
         .service(patch_vehicle_type);
 }
 
