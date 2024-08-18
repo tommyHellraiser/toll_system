@@ -2,6 +2,7 @@
 # Drop tables
 ###############
 DROP TABLE IF EXISTS transit_logs;
+DROP TABLE IF EXISTS transit_fee_logs;
 DROP TABLE IF EXISTS penalties;
 DROP TABLE IF EXISTS violation_logs;
 DROP TABLE IF EXISTS registered_vehicles;

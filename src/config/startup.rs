@@ -8,7 +8,6 @@ use crate::config::db::DbConn;
 use crate::config::environment::Environment;
 use crate::DATETIME_FORMAT;
 
-const SCHEMA_RESET_SCRIPT: &str = "config/schema_reset.sql";
 
 /// ## Description
 /// Executes initial setup for the app
@@ -32,21 +31,11 @@ pub async fn startup_configurations() ->TheResult<()> {
     if !Environment::get_database_config().await.get_reset_schema() {
         return Ok(())
     }
-    
-    //  Open schema reset script
-    let mut reader = File::options()
-        .read(true)
-        .write(false)
-        .create(false)
-        .append(false)
-        .open(SCHEMA_RESET_SCRIPT)
-        .map_err(|e| create_new_error!(e))?;
-    let mut schema_reset_script = String::new();
-    reader.read_to_string(&mut schema_reset_script).map_err(|e| create_new_error!(e))?;
-    
+        
     //  Run the schema reset script
     let mut conn = db::get_connection().await?;
-    conn.query_drop(schema_reset_script).await.map_err(|e| create_new_error!(e))?;
+    
+    db::reset_schema(&mut conn).await?;
     
     log_info!(
         logger,

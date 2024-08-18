@@ -1,7 +1,12 @@
+use std::fs::File;
+use std::io::Read;
 use error_mapper::{create_new_error, TheResult};
 use lazy_static::lazy_static;
 use mysql_async::{Conn, Pool};
+use mysql_async::prelude::Queryable;
 use tokio::sync::RwLock;
+
+pub const SCHEMA_RESET_SCRIPT: &str = "config/schema_reset.sql";
 
 lazy_static! {
     static ref DB_CONN: DbConn = DbConn::new();
@@ -43,4 +48,20 @@ pub async fn get_connection() -> TheResult<Conn> {
     let conn = pool.get_conn().await.map_err(|e| create_new_error!(e))?;
     
     Ok(conn)
+}
+
+pub async fn reset_schema(conn: &mut Conn) -> TheResult<()> {
+
+    //  Open schema reset script
+    let mut reader = File::options()
+        .read(true)
+        .write(false)
+        .create(false)
+        .append(false)
+        .open(SCHEMA_RESET_SCRIPT)
+        .map_err(|e| create_new_error!(e))?;
+    let mut schema_reset_script = String::new();
+    reader.read_to_string(&mut schema_reset_script).map_err(|e| create_new_error!(e))?;
+    
+    conn.query_drop(schema_reset_script).await.map_err(|e| create_new_error!(e))
 }
