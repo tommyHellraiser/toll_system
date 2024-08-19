@@ -1,11 +1,12 @@
 use chrono::NaiveDate;
-use mysql_async::prelude::FromRow;
-use mysql_async::{FromRowError, Row};
+use error_mapper::{create_new_error, TheResult};
+use mysql_async::prelude::{FromRow, Queryable};
+use mysql_async::{Conn, FromRowError, Row};
 use crate::get_value_from_row;
 use crate::modules::clients::Clients;
-use crate::utilities::datatypes::{ClientsIdType, DocumentType, PhoneNumberType};
+use crate::utilities::datatypes::{ClientsIdType, DocumentType, LicensePlateType, PhoneNumberType};
 
-struct DbClients {
+pub(super) struct DbClients {
     id: ClientsIdType,
     first_name: String,
     last_name: String,
@@ -15,6 +16,25 @@ struct DbClients {
     phone_number: Option<PhoneNumberType>,
     address: Option<String>,
     is_active: bool
+}
+
+impl DbClients {
+    pub(super) async fn select_by_license_plate(
+        conn: &mut Conn,
+        license_plate: &LicensePlateType
+    ) -> TheResult<Option<DbClients>> {
+        
+        let query = "SELECT c.* \
+        FROM clients AS c \
+        LEFT JOIN registered_vehicles AS r \
+        ON r.clients_ID = c.ID \
+        WHERE license_plate = ?;";
+        let params = vec![license_plate];
+        
+        conn.exec_first(query, params)
+            .await
+            .map_err(|error| create_new_error!(error))
+    }
 }
 
 impl FromRow for DbClients {

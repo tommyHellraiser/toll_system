@@ -12,3 +12,4 @@ pub(super) mod vehicle_types;
 pub(super) mod violation_logs;
 pub(super) mod transit;
 pub(super) mod transactions;
+pub(super) mod booths;

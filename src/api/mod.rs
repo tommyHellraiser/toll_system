@@ -17,6 +17,7 @@ pub(super) async fn start_api() -> TheResult<()> {
     let api_config = Environment::get_api_config().await;
     let api_ip = api_config.get_ip_addr();
     let api_port = api_config.get_port();
+    let shutdown_timeout_seconds = api_config.get_shutdown_timeout_seconds();
 
     let (stop_sender, stop_receiver) = tokio::sync::mpsc::channel::<bool>(5);
 
@@ -35,6 +36,9 @@ pub(super) async fn start_api() -> TheResult<()> {
                 )
                 .service(
                     web::scope("/blacklist").configure(modules::blacklist::services::blacklist_services)
+                )
+                .service(
+                    web::scope("/booths").configure(modules::booths::services::booths_services)
                 )
                 .service(
                     web::scope("/clients").configure(modules::clients::services::clients_services)
@@ -72,6 +76,9 @@ pub(super) async fn start_api() -> TheResult<()> {
         ).service(
                 web::scope("/internal")
                     .service(
+                    web::scope("/booths").configure(modules::booths::services::booths_internal_services)
+                )
+                    .service(
                         web::scope("/discounts").configure(modules::discounts::services::discounts_internal_services)
                     )
                     .service(
@@ -81,7 +88,10 @@ pub(super) async fn start_api() -> TheResult<()> {
                         web::scope("/transit_rates").configure(modules::transit_rates::services::transit_rates_internal_services)
                     )
             )
-    }).bind((api_ip, api_port)).map_err(|e| create_new_error!(e.to_string().as_str()))?.run();
+    }).bind((api_ip, api_port))
+        .map_err(|e| create_new_error!(e.to_string().as_str()))?
+        .shutdown_timeout(shutdown_timeout_seconds as u64)
+        .run();
 
     tokio::spawn(api_killer(api_server.handle(), stop_receiver));
 

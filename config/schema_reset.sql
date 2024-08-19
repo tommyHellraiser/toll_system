@@ -231,3 +231,13 @@ VALUES ('Buenos Aires', '7',4);
 
 INSERT INTO discounts (vehicle_types_id, valid_from, valid_until, discount_percentage, booths_id)
 VALUES (NULL, NOW(), NULL, 0.15, NULL);
+
+INSERT INTO clients(first_name, last_name, document, email, date_of_birth, phone_number, address)
+VALUES('Tomas', 'Ponce', '12345678', 'nacho.ponce25@gmail.com', '1994-11-25', '2615105315', '742 Evergreen Terrace'),
+('Agustina', 'Carral', '87654321', 'the_carral@gmail.com', '1994-11-25', NULL, NULL);
+
+INSERT INTO registered_vehicles(clients_ID, vehicle_types_ID, license_plate, color, brand, model, year)
+VALUES(2, 3, 'AS213SA', 'Grey', 'Ford', 'Ecosport', '2010');
+
+INSERT INTO blacklist(clients_ID, license_plate, reason, restriction_expiry)
+VALUES(2, 'AS213SA', 'Spat on the window of a booth', NULL);

@@ -22,7 +22,8 @@ struct EnvironmentInner {
 #[derive(Deserialize, Clone)]
 pub struct ApiConfig {
     ip_addr: String,
-    port: u16
+    port: u16,
+    shutdown_timeout_seconds: u8
 }
 
 #[derive(Deserialize, Clone)]
@@ -73,6 +74,10 @@ impl ApiConfig {
     
     pub fn get_port(&self) -> u16 {
         self.port
+    }
+    
+    pub fn get_shutdown_timeout_seconds(&self) -> u8 {
+        self.shutdown_timeout_seconds
     }
 }
 

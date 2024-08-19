@@ -6,7 +6,8 @@ edition = "2021"
 [dependencies]
 actix-web = "4.9.0"
 chrono = { version = "0.4.38", features = [] }
-error_mapper = "0.3.10"
+error_mapper = "0.3.11"
+#error_mapper = { path = "../error_mapper" }
 lazy_static = "1.5.0"
 mysql_async = { version = "0.34.2", features = ["chrono"]}
 rust_decimal = "1.35.0"

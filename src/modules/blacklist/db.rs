@@ -1,17 +1,87 @@
 use chrono::{NaiveDateTime};
-use mysql_async::prelude::FromRow;
-use mysql_async::{FromRowError, Row};
+use error_mapper::{create_new_error, TheResult};
+use mysql_async::prelude::{FromRow, Queryable};
+use mysql_async::{Conn, FromRowError, Row};
 use crate::get_value_from_row;
 use crate::modules::blacklist::Blacklist;
+use crate::modules::blacklist::requests::BlacklistPost;
 use crate::utilities::datatypes::{BlacklistIdType, ClientsIdType, LicensePlateType};
 
-#[derive(Default)]
-struct DbBlacklist {
+#[derive(Default, Debug)]
+pub(super) struct DbBlacklist {
     id: BlacklistIdType,
     clients_id: Option<ClientsIdType>,
     license_plate: LicensePlateType,
     reason: String,
     restriction_expiry: Option<NaiveDateTime>
+}
+
+impl DbBlacklist {
+    pub(super) async fn select_open_blacklist(conn: &mut Conn) -> TheResult<Vec<DbBlacklist>> {
+
+        let query = "SELECT * \
+        FROM blacklist \
+        WHERE restriction_expiry > NOW() \
+        OR restriction_expiry IS NULL;";
+
+        conn.query::<DbBlacklist, _>(query)
+            .await
+            .map_err(|error| create_new_error!(error))
+    }
+
+    pub(super) async fn select_by_clients_id(
+        conn: &mut Conn,
+        clients_id: ClientsIdType
+    ) -> TheResult<Vec<DbBlacklist>> {
+
+        let query = "SELECT * FROM blacklist \
+        WHERE clients_ID = ? \
+        ORDER BY ID DESC;";
+        let params = vec![Some(clients_id)];
+
+        conn.exec(query, params)
+            .await
+            .map_err(|error| create_new_error!(error))
+
+    }
+
+    pub(super) async fn select_by_id_or_license_plate(
+        conn: &mut Conn,
+        clients_id: Option<ClientsIdType>,
+        license_plate: LicensePlateType
+    ) -> TheResult<Vec<DbBlacklist>> {
+
+        let mut query = "SELECT * FROM blacklist \
+        WHERE license_plate = ? ".to_string();
+        let mut params = vec![license_plate.to_string()];
+
+        if let Some(clients_id) = clients_id {
+            query.push_str("OR clients_id = ? ");
+            params.push(clients_id.to_string());
+        }
+
+        query.push_str("AND (restriction_expiry > NOW() OR restriction_expiry IS NULL);");
+
+        conn.exec(query, params).await.map_err(|error| create_new_error!(error))
+    }
+
+    pub(super) async fn insert_new_entry(&mut self, conn: &mut Conn) -> TheResult<bool> {
+
+        let query = "INSERT INTO blacklist (clients_ID, license_plate, reason, restriction_expiry) \
+        VALUES(?, ?, ?, ?);";
+        let params = vec![
+            self.clients_id.map(|id| id.to_string()),
+            Some(self.license_plate.clone()),
+            Some(self.reason.clone()),
+            self.restriction_expiry.map(|expiry| expiry.to_string())
+        ];
+
+        conn.exec_drop(query, params).await.map_err(|error| create_new_error!(error))?;
+
+        self.id = conn.last_insert_id().unwrap_or_default() as u32;
+
+        Ok(conn.affected_rows() > 0)
+    }
 }
 
 impl FromRow for DbBlacklist {
@@ -41,6 +111,18 @@ impl From<DbBlacklist> for Blacklist {
     fn from(value: DbBlacklist) -> Self {
         Self {
             id: value.id,
+            clients_id: value.clients_id,
+            license_plate: value.license_plate,
+            reason: value.reason,
+            restriction_expiry: value.restriction_expiry
+        }
+    }
+}
+
+impl From<BlacklistPost> for DbBlacklist {
+    fn from(value: BlacklistPost) -> Self {
+        Self {
+            id: 0,
             clients_id: value.clients_id,
             license_plate: value.license_plate,
             reason: value.reason,
