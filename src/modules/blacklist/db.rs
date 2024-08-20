@@ -2,9 +2,9 @@ use chrono::{NaiveDateTime};
 use error_mapper::{create_new_error, TheResult};
 use mysql_async::prelude::{FromRow, Queryable};
 use mysql_async::{Conn, FromRowError, Row};
-use crate::get_value_from_row;
+use crate::{get_value_from_row, DATETIME_FORMAT};
 use crate::modules::blacklist::Blacklist;
-use crate::modules::blacklist::requests::BlacklistPost;
+use crate::modules::blacklist::requests::{BlacklistPatch, BlacklistPost};
 use crate::utilities::datatypes::{BlacklistIdType, ClientsIdType, LicensePlateType};
 
 #[derive(Default, Debug)]
@@ -45,10 +45,10 @@ impl DbBlacklist {
 
     }
 
-    pub(super) async fn select_by_id_or_license_plate(
+    pub(super) async fn select_by_clients_id_or_license_plate(
         conn: &mut Conn,
         clients_id: Option<ClientsIdType>,
-        license_plate: LicensePlateType
+        license_plate: &LicensePlateType
     ) -> TheResult<Vec<DbBlacklist>> {
 
         let mut query = "SELECT * FROM blacklist \
@@ -81,6 +81,36 @@ impl DbBlacklist {
         self.id = conn.last_insert_id().unwrap_or_default() as u32;
 
         Ok(conn.affected_rows() > 0)
+    }
+
+    pub(super) async fn update_by_id(
+        conn: &mut Conn,
+        id: BlacklistIdType,
+        patch_request: BlacklistPatch
+    ) -> TheResult<bool> {
+
+        let mut query = "UPDATE blacklist SET ".to_string();
+        let mut params = vec![];
+        
+        if let Some(reason) = patch_request.reason {
+            query.push_str("reason = ?,");
+            params.push(reason);
+        }
+        
+        if let Some(expiry) = patch_request.restriction_expiry {
+            query.push_str("restriction_expiry = ?,");
+            params.push(expiry.format(DATETIME_FORMAT).to_string());
+        }
+        
+        query.pop();    // Remove trailing comma
+        query.push_str(" WHERE ID = ?");
+        params.push(id.to_string());
+        
+        conn.exec_drop(query, params).await.map_err(|error| create_new_error!(error))?;
+
+        let affected_rows = conn.affected_rows();
+        
+        Ok(affected_rows > 0)
     }
 }
 

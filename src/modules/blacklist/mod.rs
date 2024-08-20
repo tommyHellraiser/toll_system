@@ -4,7 +4,7 @@ use mysql_async::Conn;
 use serde::Serialize;
 use the_logger::{log_error, TheLogger};
 use crate::modules::blacklist::db::DbBlacklist;
-use crate::modules::blacklist::requests::BlacklistPost;
+use crate::modules::blacklist::requests::{BlacklistPatch, BlacklistPost};
 use crate::utilities::datatypes::{BlacklistIdType, ClientsIdType, LicensePlateType};
 
 mod db;
@@ -35,7 +35,6 @@ impl Blacklist {
     
     pub async fn select_by_clients_id(
         conn: &mut Conn,
-        logger: &TheLogger,
         clients_id: ClientsIdType
     ) -> TheResult<Option<Blacklist>> {
         
@@ -45,7 +44,6 @@ impl Blacklist {
         ).await?;
         
         if result.len() > 1 {
-            log_error!(logger, "More than one active entry was found for client ID: {}", clients_id);
             return Err(create_new_error!(
                 format!("More than one active entry was found for client ID: {}", clients_id)
             ))
@@ -53,15 +51,35 @@ impl Blacklist {
         
         Ok(result.pop().map(Blacklist::from))
     }
+
+    pub async fn select_by_license_plate(
+        conn: &mut Conn,
+        license_plate: &LicensePlateType
+    ) -> TheResult<Option<Blacklist>> {
+
+        let mut result = DbBlacklist::select_by_clients_id_or_license_plate(
+            conn,
+            None,
+            &license_plate
+        ).await?;
+
+        if result.len() > 1 {
+            return Err(create_new_error!(
+                format!("More than one active entry was found for license plate: {}", license_plate)
+            ))
+        }
+
+        Ok(result.pop().map(Blacklist::from))
+    }
     
     pub async fn check_available_to_insert(
         conn: &mut Conn,
         post_request: BlacklistPost
     ) -> TheResult<bool> {
-        let result = DbBlacklist::select_by_id_or_license_plate(
+        let result = DbBlacklist::select_by_clients_id_or_license_plate(
             conn,
             post_request.clients_id,
-            post_request.license_plate.clone()
+            &post_request.license_plate
         ).await?;
         
         if !result.is_empty() {
@@ -88,5 +106,13 @@ impl Blacklist {
         }
         
         Ok(Some(Blacklist::from(db_blacklist)))
+    }
+    
+    pub async fn update_blacklist_entry(
+        conn: &mut Conn,
+        id: BlacklistIdType, 
+        patch_request: BlacklistPatch
+    ) -> TheResult<bool> {
+        DbBlacklist::update_by_id(conn, id, patch_request).await
     }
 }

@@ -4,14 +4,15 @@ use actix_web::web::ServiceConfig;
 use error_mapper::{traceback};
 use the_logger::{log_error, TheLogger};
 use crate::{get_connection_for_api, result_or_internal_error_for_api};
+use crate::modules::blacklist;
 use crate::modules::blacklist::Blacklist;
-use crate::modules::blacklist::requests::{BlacklistPath, BlacklistPost, ClientPath};
-use crate::modules::clients::Clients;
+use crate::modules::blacklist::requests::{BlacklistLicensePlatePath, BlacklistPatch, BlacklistPath, BlacklistPost, ClientIdPath};
 use crate::utilities::functions::json_response;
 
 pub fn blacklist_services(cfg: &mut ServiceConfig) {
     cfg.service(get_open_blacklist)
-        .service(get_client_status)
+        .service(get_client_status_by_id)
+        .service(get_client_status_by_license_plate)
         .service(post_to_blacklist)
         .service(patch_blacklist_entry);
 }
@@ -31,15 +32,15 @@ async fn get_open_blacklist() -> HttpResponse {
     json_response(content, StatusCode::OK)
 }
 
-/// GET {base_path}/api/blacklist/{clients_ID}
-#[get("{clients_id}")]
-async fn get_client_status(path: web::Path<ClientPath>) -> HttpResponse {
+/// GET {base_path}/api/blacklist/clients/{clients_ID}
+#[get("clients/{clients_id}")]
+async fn get_client_status_by_id(path: web::Path<ClientIdPath>) -> HttpResponse {
 
     let logger = TheLogger::instance();
     let mut conn = get_connection_for_api!(logger);
     
     let content = result_or_internal_error_for_api!(
-        Blacklist::select_by_clients_id(&mut conn, logger, path.clients_id).await,
+        Blacklist::select_by_clients_id(&mut conn, path.clients_id).await,
         logger
     );
     
@@ -53,64 +54,66 @@ async fn get_client_status(path: web::Path<ClientPath>) -> HttpResponse {
     )
 }
 
+/// GET {base_path}/api/blacklist/license_plates/{license_plate}
+#[get("license_plates/{license_plate}")]
+async fn get_client_status_by_license_plate(path: web::Path<BlacklistLicensePlatePath>) -> HttpResponse {
+    
+    let logger = TheLogger::instance();
+    let mut conn = get_connection_for_api!(logger);
+    
+    let content = result_or_internal_error_for_api!(
+        Blacklist::select_by_license_plate(&mut conn, &path.license_plate).await,
+        logger
+    );
+    
+    if let Some(blacklist) = content {
+        return json_response(blacklist, StatusCode::OK)
+    }
+    
+    HttpResponse::NotFound().finish()
+}
+
 /// POST {base_path}/api/blacklist
 #[post("")]
 async fn post_to_blacklist(body: web::Json<BlacklistPost>) -> HttpResponse {
 
     let logger = TheLogger::instance();
     let mut conn = get_connection_for_api!(logger);
-    let mut post_request = body.into_inner();
+    let post_request = body.into_inner();
     
-    //  Validate fields before proceeding
-    let errors = post_request.validate();
-    if !errors.is_empty() {
-        return json_response(errors.join(","), StatusCode::BAD_REQUEST)
-    }
-    
-    //  Check if a client or license plate is already blacklisted with an open entry
-    let available = result_or_internal_error_for_api!(
-        Blacklist::check_available_to_insert(&mut conn, post_request.clone()).await,
-        logger
-    );
-    
-    if !available {
-        return json_response(
-            format!("License plate {} is already blacklisted", post_request.license_plate),
-            StatusCode::BAD_REQUEST
-        )
-    }
-    
-    //  If there's no client information in request, look for it
-    if post_request.clients_id.is_none() {
-        //  Get client from license plate if exists
-        let client = result_or_internal_error_for_api!(
-            Clients::select_by_license_plate(&mut conn, &post_request.license_plate).await,
-            logger
-        );
-
-        //  If a client exists, save it into the post_request
-        if let Some(client) = client {
-            post_request.clients_id = Some(client.get_id());
-        }
-    }    
-    
-    let entry = result_or_internal_error_for_api!(
-        Blacklist::create_new_entry(&mut conn, post_request).await,
-        logger
-    );
-    
-    if let Some(entry) = entry {
-        return json_response(entry, StatusCode::OK)
-    }
-    
-    json_response("Request was not processed. Contact administration", StatusCode::NOT_MODIFIED)
+    blacklist::process::process_new_blacklist_entry(&mut conn, logger, post_request).await
 }
 
 /// PATCH {base_path}/api/blacklist/{blacklist_ID}
 #[patch("{blacklist_id}")]
-async fn patch_blacklist_entry(path: web::Path<BlacklistPath>) -> HttpResponse {
+async fn patch_blacklist_entry(
+    path: web::Path<BlacklistPath>,
+    body: web::Json<BlacklistPatch>
+) -> HttpResponse {
 
     let logger = TheLogger::instance();
+    let mut conn = get_connection_for_api!(logger);
+    let id = path.blacklist_id;
+    let patch_request = body.into_inner();
+    
+    let errors = patch_request.validate();
+    if !errors.is_empty() {
+        return json_response(errors.join(","), StatusCode::BAD_REQUEST)
+    }
 
-    json_response("patch_blacklist_entry response", StatusCode::OK)
+    //  Return if patch request is empty
+    if patch_request.reason.is_none() && patch_request.restriction_expiry.is_none() {
+        return HttpResponse::NotModified().finish()
+    }
+    
+    let result = result_or_internal_error_for_api!(
+        Blacklist::update_blacklist_entry(&mut conn, id, patch_request).await,
+        logger
+    );
+    
+    if !result {
+        return json_response(format!("Blacklist entry ID: {} not modified", id), StatusCode::NOT_MODIFIED)
+    }
+    
+    HttpResponse::Ok().finish()
 }
