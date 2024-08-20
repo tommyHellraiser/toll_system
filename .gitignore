@@ -8,3 +8,4 @@ Cargo.lock
 .gitignore~
 ..gitignore.un~
 logs/
+*__pycache__/
